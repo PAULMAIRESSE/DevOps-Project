@@ -29,7 +29,7 @@ cd agent; vagrant up
 Master will create a complete GitLab development environment, with a pre-configured project, ready for collaborative development and CI/CD workflows.  
 It will interact with Agent VM to set it as a GitLab runner, so that it runs the tasks for Master. 
 
-More precisely, it installs GitLab. 
+More precisely, it installs GitLab. Then, it creates a GitLab instance runner and shares the token to Agent via SSH. Finally, it clones a web project from the internet and pushes a commit to this project. This triggers the CI/CD pipeline of this project, which is handled by Agent.  
 
 ## Agent VM
 
