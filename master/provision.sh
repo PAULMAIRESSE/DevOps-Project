@@ -107,3 +107,4 @@ git add .gitlab-ci.yml
 git commit -m "Initial commit with pipeline"
 git remote add agent "http://root:$token@$vm1/root/$gitlab_project_name.git"
 git push -u agent master
+
