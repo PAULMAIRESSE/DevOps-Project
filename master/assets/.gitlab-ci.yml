@@ -1,0 +1,35 @@
+image: docker:latest
+
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  # Assure que Docker utilise le socket local monté
+  DOCKER_HOST: unix:///var/run/docker.sock
+  DISCORD_WEBHOOK_URL: https://discord.com/api/webhooks/1382002361903349911/DEpHB2rlHCEDhs3rlN0nef1eJreMzKTkd0z3jfbHsoDmqQimY-mYUWQuwn3rD9yOMx9N
+
+# Étape 1: Build l'image courriel
+build_app:
+  stage: build
+  script:
+    - docker build -t courriel-app .
+
+# Étape 2: Test de santé (via pipeline.sh, qui contient le healthcheck + test)
+test_app:
+  stage: test
+  script:
+    - docker build -t courriel-pipeline .
+    - docker run --rm \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        -e DISCORD_WEBHOOK_URL="$DISCORD_WEBHOOK_URL" \
+        courriel-pipeline
+  allow_failure: false
+
+# Étape 3: Déploiement en prod (si test OK)
+deploy_app:
+  stage: deploy
+  script:
+    - echo "✅ Déploiement validé après tests. Rien à faire ici, déjà géré dans pipeline.sh."
+  when: on_success

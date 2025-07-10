@@ -1,0 +1,37 @@
+# Vagrantfile for setting up a Windows and macOS VM using Vagrant
+param = ARGV.find { |arg| arg.start_with?('-os=') }
+os_type = param ? param.split('=').last : 'default'
+
+Vagrant.configure("2") do |config|
+    if Vagrant::Util::Platform.windows? || os_type == 'windows'
+        config.vm.define "windows2" do |myvm|
+            # Windows-specific settings
+            config.vm.box = "generic/debian12"
+            config.vm.box_version = "4.3.12"
+            myvm.vm.provider "virtualbox" do |prov|
+                prov.memory = "1024"
+                prov.cpus = 1   
+            end
+        end
+    else
+        # Default to macOS if not specified
+        config.vm.define "macos2" do |myvm|
+            myvm.vm.box = "utm/debian11" 
+
+            # Set VM properties for UTM
+            myvm.vm.provider "utm" do |u|
+                u.name = "debian_vm"
+                u.memory = "2048"  # 2GB memory
+                u.cpus = 2        # 2 CPUs         
+                u.directory_share_mode = "virtFS"
+            end
+        end
+    end
+
+    # Provisioning all requirements using a shell script
+    config.vm.provision "shell", path: "provision.sh"
+
+    # Create networks between the VM and the host, and between the VMs
+    config.vm.network "forwarded_port", guest: 3000, host: 3000
+    config.vm.network "private_network", ip: "192.168.56.11"
+end

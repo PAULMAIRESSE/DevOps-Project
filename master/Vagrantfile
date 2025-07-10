@@ -1,0 +1,38 @@
+# Vagrantfile for setting up a Windows and macOS VM using Vagrant
+param = ARGV.find { |arg| arg.start_with?('-os=') }
+os_type = param ? param.split('=').last : 'default'
+
+Vagrant.configure("2") do |config|
+    if Vagrant::Util::Platform.windows? || os_type == 'windows'
+        config.vm.define "windows" do |myvm|
+            # Windows-specific settings
+            myvm.vm.box = "hashicorp/bionic64"
+            myvm.vm.provider "virtualbox" do |prov|
+                prov.memory = "6144" # 6GB memory
+                prov.cpus = 3        # 3 CPUs
+            end
+            myvm.vm.synced_folder "./assets", "/vagrant/project"
+        end
+    else
+        # Default to macOS if not specified
+        config.vm.define "macos" do |myvm|
+            myvm.vm.box = "utm/debian11"  # Use a Debian box for Mac
+
+            # Set VM properties for UTM
+            myvm.vm.provider "utm" do |u|
+                u.name = "Master_VM"
+                u.memory = "6144"   # 6GB memory
+                u.cpus = 4          # 4 CPUs
+                u.directory_share_mode = "virtFS"
+            end
+            myvm.vm.synced_folder "./assets", "/vagrant/project"
+        end
+    end
+
+    # Provisioning all requirements using a shell script
+    config.vm.provision "shell", path: "provision.sh"
+
+    # Create networks between the VM and the host, and between the VMs
+    config.vm.network "forwarded_port", guest: 80, host: 80
+    config.vm.network "private_network", ip: "192.168.56.10"
+end
